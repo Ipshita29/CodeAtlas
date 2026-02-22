@@ -1,7 +1,7 @@
 # Node modules
 backend/node_modules/
 frontend/node_modules/
-
+backend/.env
 # Python venv
 ai-service/venv/
 
