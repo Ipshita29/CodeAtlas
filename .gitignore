@@ -1,0 +1,15 @@
+# Node modules
+backend/node_modules/
+frontend/node_modules/
+
+# Python venv
+ai-service/venv/
+
+# Environment files
+*.env
+
+# Build output
+frontend/dist/
+
+# OS junk
+.DS_Store
