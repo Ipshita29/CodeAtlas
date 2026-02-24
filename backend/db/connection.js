@@ -1,7 +1,7 @@
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 
-dotenv.config(); // loads .env
+dotenv.config(); 
 
 export const db = await mysql.createPool({
   host: process.env.DB_HOST,
@@ -11,3 +11,4 @@ export const db = await mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
 });
+console.log("database connected successfully")
