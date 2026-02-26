@@ -1,5 +1,5 @@
 # CodeAtlas
-AI-Powered Self-Documenting Repository Intelligence System
+Complete AI Repository Intelligence System
 
 ## Overview
 
