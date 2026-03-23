@@ -59,7 +59,11 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    output.textContent = JSON.stringify(data.result, null, 2);
+                    output.textContent = `Architecture: \n${data.architecture}\n\n`;
+                    output.textContent += `README Status: ${data.readmeStatus}\n\n`;
+                    if (data.updatedReadme) {
+                        output.textContent += `Updated/Generated README:\n${data.updatedReadme}`;
+                    }
                 } else {
                     output.textContent = 'Error: ' + data.message;
                 }
@@ -88,7 +92,11 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    output.textContent = JSON.stringify(data.result, null, 2);
+                    output.textContent = `Architecture: \n${data.architecture}\n\n`;
+                    output.textContent += `README Status: ${data.readmeStatus}\n\n`;
+                    if (data.updatedReadme) {
+                        output.textContent += `Updated/Generated README:\n${data.updatedReadme}`;
+                    }
                 } else {
                     output.textContent = 'Error: ' + data.message;
                 }
