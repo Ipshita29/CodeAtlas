@@ -11,10 +11,12 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "adm-zip": "^0.5.16",
     "axios": "^1.13.5",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "multer": "^2.1.1",
     "mysql2": "^3.17.4"
   }
 }
