@@ -70,23 +70,30 @@ const processFiles = (dir) => {
         result.totalFiles++;
         
         let content = "";
+        const ext = path.extname(file).toLowerCase();
+        const codeExtensions = [".js", ".jsx", ".ts", ".tsx", ".py", ".html", ".css", ".cpp", ".java", ".c", ".h", ".md"];
+        
         const isReadme = file.toLowerCase() === "readme.md";
         const isImportant = ["package.json", "requirements.txt", "manage.py", "pyproject.toml"].includes(file);
+        const isCode = codeExtensions.includes(ext);
         
         // Simple line count helper
         let lines = 0;
         let hasComments = false;
         
-        try {
-          const raw = fs.readFileSync(fullPath, "utf-8");
-          lines = raw.split("\n").length;
-          hasComments = raw.includes("//") || raw.includes("#");
-          
-          if (isReadme || isImportant) {
-            content = raw;
+        // ONLY read if it's code, readme, or important config
+        if (isCode || isReadme || isImportant) {
+          try {
+            const raw = fs.readFileSync(fullPath, "utf-8");
+            lines = raw.split("\n").length;
+            hasComments = raw.includes("//") || raw.includes("#");
+            
+            if (isReadme || isImportant) {
+              content = raw;
+            }
+          } catch (e) {
+            console.log("Could not read file metadata:", relPath);
           }
-        } catch (e) {
-          console.log("Could not read file metadata:", relPath);
         }
 
         result.files.push({
@@ -240,37 +247,40 @@ function getSuggestions(files) {
   if (!hasReadme) {
     suggestions.push({
       text: "Add a README file to explain the project",
-      file: "root folder"
+      files: []
     });
   }
 
+  // Filter for code files ONLY
+  const codeExtensions = [".js", ".jsx", ".ts", ".tsx", ".py", ".html", ".css", ".cpp", ".java", ".c", ".h"];
+  const codeFiles = files.filter(f => {
+    const ext = path.extname(f.name).toLowerCase();
+    return codeExtensions.includes(ext);
+  });
+
   // 2. LARGE FILE CHECK
-  const largeFiles = files.filter(f => f.lines > 300);
+  const largeFiles = codeFiles.filter(f => f.lines > 300);
   if (largeFiles.length > 0) {
-    largeFiles.forEach(f => {
-      suggestions.push({
-        text: `Break down this large file (${f.lines} lines) into smaller modules`,
-        file: f.path
-      });
+    suggestions.push({
+      text: "Consider breaking these large files into smaller modules:",
+      files: largeFiles.map(f => f.path)
     });
   }
 
   // 3. FILE COUNT CHECK
   if (files.length > 50) {
     suggestions.push({
-      text: "Organize files into subdirectories for better structure",
-      file: "project structure"
+      text: "Project has many files, consider organizing into subdirectories",
+      files: []
     });
   }
 
   // 4. COMMENTS CHECK
-  const filesWithoutComments = files.filter(f => !f.hasComments && f.lines > 20);
-  if (filesWithoutComments.length > 0) {
-    filesWithoutComments.slice(0, 3).forEach(f => {
-      suggestions.push({
-        text: "Add comments to explain the complex logic",
-        file: f.path
-      });
+  const lowCommentFiles = codeFiles.filter(f => !f.hasComments && f.lines > 20);
+  if (lowCommentFiles.length > 0) {
+    suggestions.push({
+      text: "Add comments to improve readability in these files:",
+      files: lowCommentFiles.map(f => f.path).slice(0, 5) // Limit to top 5
     });
   }
 
@@ -278,8 +288,8 @@ function getSuggestions(files) {
   const hasPackage = files.some(f => f.name === "package.json" || f.name === "requirements.txt");
   if (!hasPackage) {
     suggestions.push({
-      text: "Add a dependency file (package.json or requirements.txt) for easy setup",
-      file: "root folder"
+      text: "Add dependency file (package.json or requirements.txt) for easy setup",
+      files: []
     });
   }
 
@@ -287,35 +297,13 @@ function getSuggestions(files) {
 }
 
 async function refineSuggestionsAI(hints) {
-  if (hints.length === 0) return ["Project looks well structured"];
-  
-  // Format hints with location for AI
-  let hintsToRefine = hints.map(h => `- ${h.text} (Location: ${h.file})`).join("\n");
-  
-  let prompt = `Improve and rewrite these coding project suggestions. 
-  Each suggestion includes a location. Make sure to keep the location clear in the final result so the user knows exactly where to fix it.
-  
-  Rules:
-  1. Keep it professional but simple.
-  2. Format: "[Suggestion] in [File Path]"
-  
-  Hints with locations:
-  ${hintsToRefine}`;
-
-  try {
-    const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-      contents: [{ parts: [{ text: prompt }] }]
-    });
-
-    if (response.data?.candidates?.[0]?.content) {
-      let text = response.data.candidates[0].content.parts[0].text;
-      return text.split("\n").filter(line => line.trim().length > 0).map(line => line.replace(/^- /, ""));
-    }
-  } catch (e) {
-    console.log("AI Suggestions failed, using raw hints with location info");
+  if (hints.length === 0) {
+    return [{ text: "Project looks well structured!", files: [] }];
   }
   
-  return hints.map(h => `${h.text} in ${h.file}`); // Fallback includes file
+  // Actually, let's keep it simple and just use the hints directly to avoid AI messing up the structure
+  // This is more "beginner style" and reliable for the requested format.
+  return hints;
 }
 
 app.get("/suggestions", async (req, res) => {
