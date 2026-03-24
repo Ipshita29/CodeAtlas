@@ -27,6 +27,12 @@
     </div>
 
     <hr>
+    <div>
+        <h3>Project Improvement Suggestions</h3>
+        <button id="suggestionsBtn">Get Suggestions</button>
+        <ul id="suggestionsList" style="margin-top: 10px; color: #d9534f; font-weight: bold;"></ul>
+    </div>
+    <hr>
 
     <h3>Output:</h3>
     <pre id="output" style="background: #f4f4f4; padding: 10px; border: 1px solid #ccc; min-height: 100px; white-space: pre-wrap; word-break: break-all;"></pre>
@@ -35,6 +41,8 @@
         const output = document.getElementById('output');
         const analyzeBtn = document.getElementById('analyzeBtn');
         const uploadBtn = document.getElementById('uploadBtn');
+        const suggestionsBtn = document.getElementById('suggestionsBtn');
+        const suggestionsList = document.getElementById('suggestionsList');
         const repoUrlInput = document.getElementById('repoUrl');
         const zipFileInput = document.getElementById('zipFile');
 
@@ -102,6 +110,27 @@
                 }
             } catch (err) {
                 output.textContent = 'Error: ' + err.message + '\n\nMake sure the backend is running on port 5001.';
+            }
+        });
+
+        suggestionsBtn.addEventListener('click', async () => {
+            suggestionsList.innerHTML = '<li>Loading suggestions...</li>';
+            try {
+                const response = await fetch(`${BACKEND_URL}/suggestions`);
+                const data = await response.json();
+                
+                suggestionsList.innerHTML = '';
+                if (data.suggestions && data.suggestions.length > 0) {
+                    data.suggestions.forEach(s => {
+                        const li = document.createElement('li');
+                        li.textContent = s;
+                        suggestionsList.appendChild(li);
+                    });
+                } else {
+                    suggestionsList.innerHTML = '<li>No suggestions yet. Analyze a repo first!</li>';
+                }
+            } catch (err) {
+                suggestionsList.innerHTML = '<li>Error fetching suggestions</li>';
             }
         });
     </script>

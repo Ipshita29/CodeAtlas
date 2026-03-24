@@ -73,19 +73,28 @@ const processFiles = (dir) => {
         const isReadme = file.toLowerCase() === "readme.md";
         const isImportant = ["package.json", "requirements.txt", "manage.py", "pyproject.toml"].includes(file);
         
-        // Only read content for README or key config files to stay fast
-        if (isReadme || isImportant) {
-          try {
-            content = fs.readFileSync(fullPath, "utf-8");
-          } catch (e) {
-            console.log("Could not read file:", relPath);
+        // Simple line count helper
+        let lines = 0;
+        let hasComments = false;
+        
+        try {
+          const raw = fs.readFileSync(fullPath, "utf-8");
+          lines = raw.split("\n").length;
+          hasComments = raw.includes("//") || raw.includes("#");
+          
+          if (isReadme || isImportant) {
+            content = raw;
           }
+        } catch (e) {
+          console.log("Could not read file metadata:", relPath);
         }
 
         result.files.push({
           name: file,
           path: relPath,
-          content: content.substring(0, 1000) // keep enough for AI/Logic
+          content: content.substring(0, 1000),
+          lines: lines,
+          hasComments: hasComments
         });
       }
     }
@@ -220,6 +229,99 @@ Keep it clean, easy instructions for students. Use simple markdown.`;
   return `# Project Overview\n\n${tech}\n\n(AI was too busy for a full README: ${lastError})`;
 }
 
+// 4. IMPROVEMENT SUGGESTIONS (NEW FEATURE):
+let lastSuggestions = [];
+
+function getSuggestions(files) {
+  let suggestions = [];
+
+  // 1. README CHECK
+  const hasReadme = files.some(f => f.name.toLowerCase() === "readme.md");
+  if (!hasReadme) {
+    suggestions.push({
+      text: "Add a README file to explain the project",
+      file: "root folder"
+    });
+  }
+
+  // 2. LARGE FILE CHECK
+  const largeFiles = files.filter(f => f.lines > 300);
+  if (largeFiles.length > 0) {
+    largeFiles.forEach(f => {
+      suggestions.push({
+        text: `Break down this large file (${f.lines} lines) into smaller modules`,
+        file: f.path
+      });
+    });
+  }
+
+  // 3. FILE COUNT CHECK
+  if (files.length > 50) {
+    suggestions.push({
+      text: "Organize files into subdirectories for better structure",
+      file: "project structure"
+    });
+  }
+
+  // 4. COMMENTS CHECK
+  const filesWithoutComments = files.filter(f => !f.hasComments && f.lines > 20);
+  if (filesWithoutComments.length > 0) {
+    filesWithoutComments.slice(0, 3).forEach(f => {
+      suggestions.push({
+        text: "Add comments to explain the complex logic",
+        file: f.path
+      });
+    });
+  }
+
+  // 5. PACKAGE FILE CHECK
+  const hasPackage = files.some(f => f.name === "package.json" || f.name === "requirements.txt");
+  if (!hasPackage) {
+    suggestions.push({
+      text: "Add a dependency file (package.json or requirements.txt) for easy setup",
+      file: "root folder"
+    });
+  }
+
+  return suggestions;
+}
+
+async function refineSuggestionsAI(hints) {
+  if (hints.length === 0) return ["Project looks well structured"];
+  
+  // Format hints with location for AI
+  let hintsToRefine = hints.map(h => `- ${h.text} (Location: ${h.file})`).join("\n");
+  
+  let prompt = `Improve and rewrite these coding project suggestions. 
+  Each suggestion includes a location. Make sure to keep the location clear in the final result so the user knows exactly where to fix it.
+  
+  Rules:
+  1. Keep it professional but simple.
+  2. Format: "[Suggestion] in [File Path]"
+  
+  Hints with locations:
+  ${hintsToRefine}`;
+
+  try {
+    const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+      contents: [{ parts: [{ text: prompt }] }]
+    });
+
+    if (response.data?.candidates?.[0]?.content) {
+      let text = response.data.candidates[0].content.parts[0].text;
+      return text.split("\n").filter(line => line.trim().length > 0).map(line => line.replace(/^- /, ""));
+    }
+  } catch (e) {
+    console.log("AI Suggestions failed, using raw hints with location info");
+  }
+  
+  return hints.map(h => `${h.text} in ${h.file}`); // Fallback includes file
+}
+
+app.get("/suggestions", async (req, res) => {
+  res.json({ suggestions: lastSuggestions });
+});
+
 app.post("/repo", async (req, res) => {
   const { repoUrl } = req.body;
   const tempDir = path.join(tempBase, Date.now().toString());
@@ -245,6 +347,10 @@ app.post("/repo", async (req, res) => {
       updatedReadme = await generateReadmeAI(processed.files, arch);
     }
 
+    // get suggestions
+    const rawHints = getSuggestions(processed.files);
+    lastSuggestions = await refineSuggestionsAI(rawHints);
+
     // Clean up
     fs.rmSync(tempDir, { recursive: true, force: true });
 
@@ -253,7 +359,8 @@ app.post("/repo", async (req, res) => {
       architecture: arch,
       readmeStatus: readmeStatus.status,
       updatedReadme: updatedReadme,
-      totalFiles: processed.totalFiles
+      totalFiles: processed.totalFiles,
+      suggestions: lastSuggestions
     });
   } catch (error) {
     console.error(error);
@@ -283,6 +390,10 @@ app.post("/upload", upload.single("zipFile"), async (req, res) => {
       updatedReadme = await generateReadmeAI(processed.files, arch);
     }
 
+    // get suggestions
+    const rawHints = getSuggestions(processed.files);
+    lastSuggestions = await refineSuggestionsAI(rawHints);
+
     // Clean up
     fs.rmSync(tempDir, { recursive: true, force: true });
     fs.unlinkSync(req.file.path);
@@ -292,7 +403,8 @@ app.post("/upload", upload.single("zipFile"), async (req, res) => {
       architecture: arch,
       readmeStatus: readmeStatus.status,
       updatedReadme: updatedReadme,
-      totalFiles: processed.totalFiles
+      totalFiles: processed.totalFiles,
+      suggestions: lastSuggestions
      });
   } catch (error) {
     console.error(error);
