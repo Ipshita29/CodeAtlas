@@ -11,6 +11,7 @@ import path from "path";
 import multer from "multer";
 import AdmZip from "adm-zip";
 import { fileURLToPath } from "url";
+import os from "os";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,13 +27,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Ensure required directories exist
-const tempBase = path.join(__dirname, "temp");
-const uploadBase = path.join(__dirname, "uploads");
-if (!fs.existsSync(tempBase)) fs.mkdirSync(tempBase);
-if (!fs.existsSync(uploadBase)) fs.mkdirSync(uploadBase);
+// Ensure required directories exist in system temp to keep project folder clean
+const tempBase = path.join(os.tmpdir(), "codeatlas-temp");
+const uploadBase = path.join(os.tmpdir(), "codeatlas-uploads");
+if (!fs.existsSync(tempBase)) fs.mkdirSync(tempBase, { recursive: true });
+if (!fs.existsSync(uploadBase)) fs.mkdirSync(uploadBase, { recursive: true });
 
-const upload = multer({ dest: "uploads/" });
+const upload = multer({ dest: uploadBase });
 
 
 app.get("/", (req, res) => {
@@ -53,7 +54,7 @@ app.get("/test-db", async (req, res) => {
 const processFiles = (dir) => {
   const result = {
     totalFiles: 0,
-    files: [], // we will store objects here {name: 'file.js', path: 'src/file.js', lines: 10, content: '...'}
+    files: [], // we will store objects here {name: 'file.js', path: 'src/file.js', content: '...'}
   };
 
   const traverse = (currentDir, relativeDir = "") => {
@@ -66,14 +67,25 @@ const processFiles = (dir) => {
       if (stat.isDirectory()) {
         traverse(fullPath, relPath);
       } else {
-        const content = fs.readFileSync(fullPath, "utf-8");
-        const lines = content.split("\n").length;
         result.totalFiles++;
+        
+        let content = "";
+        const isReadme = file.toLowerCase() === "readme.md";
+        const isImportant = ["package.json", "requirements.txt", "manage.py", "pyproject.toml"].includes(file);
+        
+        // Only read content for README or key config files to stay fast
+        if (isReadme || isImportant) {
+          try {
+            content = fs.readFileSync(fullPath, "utf-8");
+          } catch (e) {
+            console.log("Could not read file:", relPath);
+          }
+        }
+
         result.files.push({
           name: file,
           path: relPath,
-          lines: lines,
-          content: content.substring(0, 500)
+          content: content.substring(0, 1000) // keep enough for AI/Logic
         });
       }
     }
@@ -85,44 +97,66 @@ const processFiles = (dir) => {
 
 // 1. ARCHITECTURE OVERVIEW (AI POWERED):
 async function getArchitecture(files) {
-  // list top level files and folders to give AI context
+  // Much better basic detection if AI fails
+  const guessArchitecture = (files) => {
+    const rootFiles = files.filter(f => !f.path.includes(path.sep)).map(f => f.name);
+    const hasPackageJson = rootFiles.includes("package.json");
+    const hasManagePy = rootFiles.includes("manage.py");
+    const hasRequirements = rootFiles.includes("requirements.txt") || rootFiles.includes("pyproject.toml");
+    const hasCMake = rootFiles.includes("CMakeLists.txt") || files.some(f => f.name === "CMakeLists.txt");
+    
+    // Count extensions
+    let extCount = {};
+    files.forEach(f => {
+      let ext = path.extname(f.name);
+      extCount[ext] = (extCount[ext] || 0) + 1;
+    });
+
+    if (hasManagePy) return "Django (Python) project.";
+    if (hasPackageJson && (extCount[".js"] || 0) > (extCount[".py"] || 0)) return "Node.js based project.";
+    if (hasRequirements || (extCount[".py"] || 0) > (extCount[".js"] || 0)) return "Python based project.";
+    if (hasCMake || (extCount[".cpp"] || 0) > 0) return "C++ based project.";
+    if ((extCount[".html"] || 0) > 0 && (extCount[".js"] || 0) > 0) return "Frontend (Web) project.";
+    
+    return "General project structure.";
+  };
+
   let fileContext = files
     .filter(f => f.path.split(path.sep).length <= 2)
     .map(f => f.path)
     .slice(0, 40)
     .join("\n");
 
-  let prompt = `Analyze this list of files from a repository and determine the architecture and technology stack.
+  let prompt = `Analyze these files and show me the architecture and tech stack accurately.
 Files:
 ${fileContext}
 
-Return a concise explaination (student-level) like:
-"This project is a [Type].
-It uses: [Tech]
-Flow: [Simplified Flow]"
+Return simple:
+"This is a [Type].
+Uses: [Tech]
+Flow: [Flow]"`;
 
-Be very accurate. If it is not Node.js, do not say it is Node.js. Check for py, java, cpp, etc.
-Keep it simple and beginner friendly.`;
+  console.log("Calling Gemini for Architecture...");
 
-  console.log("Calling Gemini for accurate Architecture Detection...");
+  const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest"];
+  let lastError = "";
 
-  if (!process.env.GEMINI_API_KEY) {
-      return "AI Key missing. (Node.js/Python guess could go here)";
+  for (let model of models) {
+     try {
+        const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+          contents: [{ parts: [{ text: prompt }] }]
+        });
+        if (response.data?.candidates?.[0]?.content) {
+            return response.data.candidates[0].content.parts[0].text;
+        }
+     } catch (err) {
+        lastError = err.response?.data?.error?.message || err.message;
+        console.log(`Model ${model} failed:`, lastError);
+        if (err.response?.status !== 429) break; // If not rate limited, stop trying others
+     }
   }
 
-  try {
-    const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-      contents: [{ parts: [{ text: prompt }] }]
-    });
-
-    if (response.data && response.data.candidates && response.data.candidates[0].content) {
-        return response.data.candidates[0].content.parts[0].text;
-    }
-    return "Could not determine architecture accurately.";
-  } catch (err) {
-    console.log("Arch AI Error:", err.message);
-    return "Error detecting architecture.";
-  }
+  return `This is a ${guessArchitecture(files)}\n\n(AI was busy: ${lastError})`;
 }
 
 // 2. README LOGIC:
@@ -161,32 +195,38 @@ Keep it clean, easy instructions for students. Use simple markdown.`;
 
   if (!process.env.GEMINI_API_KEY) {
       console.log("No API Key found in .env");
-      return `# Project README\n\nThis is a ${tech} project.\n\nFiles found: ${mainFiles}.\n\n(Add GEMINI_API_KEY to .env for AI generation)`;
+      return `# Project README\n\nThis is a ${tech} project.`;
   }
 
-  try {
-    const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-      contents: [{ parts: [{ text: prompt }] }]
-    });
+  const models = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-flash-latest"];
+  let lastError = "";
 
-    if (response.data && response.data.candidates && response.data.candidates[0].content) {
-        return response.data.candidates[0].content.parts[0].text;
-    } else {
-        return "AI response structure unexpected. Check API key.";
+  for (let model of models) {
+    try {
+      const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        contents: [{ parts: [{ text: prompt }] }]
+      });
+
+      if (response.data && response.data.candidates && response.data.candidates[0].content) {
+          return response.data.candidates[0].content.parts[0].text;
+      }
+    } catch (err) {
+      lastError = err.response?.data?.error?.message || err.message;
+      console.log(`README Generator ${model} failed:`, lastError);
+      if (err.response?.status !== 429) break;
     }
-  } catch (err) {
-    console.log("AI API Error:", err.response ? err.response.data : err.message);
-    return "Could not generate README. Please check if your API key is valid.";
   }
+
+  return `# Project Overview\n\n${tech}\n\n(AI was too busy for a full README: ${lastError})`;
 }
 
 app.post("/repo", async (req, res) => {
   const { repoUrl } = req.body;
-  const tempDir = path.join(__dirname, "temp", Date.now().toString());
+  const tempDir = path.join(tempBase, Date.now().toString());
 
   try {
-    if (!fs.existsSync(path.join(__dirname, "temp"))) {
-      fs.mkdirSync(path.join(__dirname, "temp"));
+    if (!fs.existsSync(tempBase)) {
+      fs.mkdirSync(tempBase, { recursive: true });
     }
 
     console.log(`Cloning ${repoUrl} to ${tempDir}`);
@@ -226,7 +266,7 @@ app.post("/upload", upload.single("zipFile"), async (req, res) => {
     return res.status(400).json({ success: false, message: "No file uploaded" });
   }
 
-  const tempDir = path.join(__dirname, "temp", Date.now().toString());
+  const tempDir = path.join(tempBase, Date.now().toString());
 
   try {
     const zip = new AdmZip(req.file.path);
