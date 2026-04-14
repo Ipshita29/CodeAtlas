@@ -137,10 +137,22 @@ async function getArchitecture(files) {
     return "General project structure.";
   };
 
-  let fileContext = files
-    .filter(f => f.path.split(path.sep).length <= 2)
+  let importantFiles = files.filter(f => {
+      return (
+        f.name === "package.json" ||
+        f.name === "requirements.txt" ||
+        f.name === "README.md" ||
+        f.path.includes("src/") ||
+        f.path.includes("app/") ||
+        f.path.includes("main") ||
+        f.path.endsWith(".js") ||
+        f.path.endsWith(".py")
+      );
+    });
+
+  let fileContext = importantFiles
+    .slice(0, 20) // reduce size
     .map(f => f.path)
-    .slice(0, 40)
     .join("\n");
 
   let prompt = `Analyze these files and show me the architecture and tech stack accurately.
