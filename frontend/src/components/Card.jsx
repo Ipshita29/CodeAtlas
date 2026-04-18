@@ -1,17 +1,17 @@
-export const Card = ({ title, children, className = "" }) => {
+export const Card = ({ title, children, className = "", id = "" }) => {
   return (
-    <div className={`bg-[#131313] border-l-4 border-[#ff8f6f] p-6 relative overflow-hidden ${className}`}>
+    <div className={`card ${className}`}>
       {title && (
-        <div className="mb-4">
-          <h3 className="text-[#ff8f6f] text-xs font-mono tracking-widest opacity-80 mb-1">
-            {title}
-          </h3>
-          <div className="h-[1px] bg-white opacity-10 w-full"></div>
+        <div className="mb-8">
+          <div className="mono-label" style={{ fontSize: '10px', marginBottom: '4px', opacity: 0.4 }}>MODULE_TYPE</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <h3 style={{ fontSize: '1.25rem', color: '#fff' }}>{title}</h3>
+            {id && <span className="mono-label" style={{ fontSize: '8px', opacity: 0.2 }}>{id}</span>}
+          </div>
         </div>
       )}
-      {children}
-      <div className="absolute bottom-1 right-2 opacity-10 font-mono text-[8px]">
-        UNIT_ID: CA-DASH-2026
+      <div className="card-content">
+        {children}
       </div>
     </div>
   );

@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
-import { MessageSquare, Send, Sparkles, Brain, Code } from "lucide-react";
+import { Send, Sparkles, Brain, Cpu, Terminal } from "lucide-react";
 
-const BACKEND_URL = "http://localhost:5001";
+const BACKEND_URL = "http://127.0.0.1:5001";
 
 export const ChatPage = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: "system", content: "INTELLIGENCE_MODULE_LOADED. I am ready to analyze your repository suggestions." }
+  const [messages] = useState([
+    { role: "system", content: "NEURAL_CORE_ESTABLISHED. Intelligence module is now online. Querying global suggestion cache..." }
   ]);
 
   useEffect(() => {
@@ -30,111 +30,73 @@ export const ChatPage = () => {
   };
 
   return (
-    <div className="pt-32 pb-20 px-8 h-screen flex flex-col">
-      <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col overflow-hidden">
-        <div className="mb-8">
-          <h2 className="text-4xl mb-2">INTELLIGENCE UNIT</h2>
-          <p className="text-white/40 font-mono text-xs tracking-widest">STATION_ALPHA // AI_SUGGESTIONS_ENGINE</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 flex-1 overflow-hidden">
-          {/* Suggestions Sidebar */}
-          <div className="lg:col-span-1 flex flex-col gap-6 overflow-hidden">
-            <Card title="SUGGESTIONS_FEED" className="flex-1 flex flex-col overflow-hidden">
-              <div className="overflow-y-auto pr-2 space-y-4">
-                {isLoading ? (
-                  <div className="text-[10px] font-mono opacity-40 animate-pulse">POLLING_DATA...</div>
-                ) : suggestions.length === 0 ? (
-                  <div className="text-[10px] font-mono opacity-40">NO_DATA_FOUND. INITIALIZE_ANALYSIS.</div>
-                ) : (
-                  suggestions.map((s, i) => (
-                    <div 
-                      key={i} 
-                      className="p-4 bg-white/5 border-l-2 border-[#ff8f6f]/20 hover:border-[#ff8f6f] transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2 mb-2 text-[#ff8f6f]">
-                        <Sparkles size={12} />
-                        <span className="text-[10px] font-mono font-bold tracking-tighter">SUGGESTION_{i+1}</span>
-                      </div>
-                      <p className="text-xs text-white/80 font-medium mb-3">{s.text}</p>
-                      {s.files && (
-                        <div className="flex flex-wrap gap-1">
-                          {s.files.map((f, idx) => (
-                            <span key={idx} className="text-[8px] font-mono bg-white/10 px-1 py-0.5 opacity-60">
-                              {f.split('/').pop()}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-              <Button onClick={fetchSuggestions} variant="secondary" className="mt-6 w-full py-2">
-                REFRESH_FEED
-              </Button>
-            </Card>
+    <div className="container" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div className="mb-8" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+            <Sparkles size={14} style={{ color: 'var(--primary)' }} />
+            <span className="mono-label" style={{ fontSize: '10px' }}>INTELLIGENCE_STREAM_01</span>
           </div>
+          <h2 style={{ fontSize: '4rem', fontWeight: 900 }}>NEURAL <span style={{ color: 'var(--primary)' }}>CORE</span></h2>
+        </div>
+        <div style={{ padding: '12px 24px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Brain size={16} style={{ color: 'var(--primary)' }} />
+          <span className="mono-label" style={{ fontSize: '10px' }}>COGNITIVE_LOAD: LOW</span>
+        </div>
+      </div>
 
-          {/* Chat Interface */}
-          <div className="lg:col-span-3 flex flex-col gap-6 overflow-hidden">
-            <Card title="NEURAL_INTERFACE" className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto pr-2 space-y-6 mb-6">
-                {messages.map((msg, i) => (
-                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] p-4 ${msg.role === 'user' ? 'bg-[#ff8f6f] text-black' : 'bg-white/5 border border-white/5'}`}>
-                      <div className="flex items-center gap-2 mb-2 opacity-60">
-                        {msg.role === 'user' ? <Brain size={12} /> : <Cpu size={12} />}
-                        <span className="text-[8px] font-mono uppercase">{msg.role === 'user' ? 'USER_INPUT' : 'SYSTEM_READOUT'}</span>
-                      </div>
-                      <p className="text-sm font-light leading-relaxed">{msg.content}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-1 relative">
-                  <MessageSquare className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
-                  <input 
-                    type="text" 
-                    className="w-full bg-white/5 border-b-2 border-white/10 px-12 py-4 outline-none focus:border-[#ff8f6f] transition-colors font-mono text-sm"
-                    placeholder="QUERY SYSTEM..."
-                  />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '32px', flex: 1, minHeight: 0 }}>
+        {/* Suggestions Sidebar */}
+        <Card title="RECON_SUGGESTIONS" id="CA-INT-A" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', paddingRight: '8px' }}>
+            {suggestions.map((s, i) => (
+              <div key={i} style={{ padding: '24px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                  <div style={{ width: '24px', height: '24px', border: '1px solid var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontSize: '10px', fontFamily: 'var(--font-mono)' }}>{i+1}</div>
+                  <span className="mono-label" style={{ fontSize: '9px', opacity: 0.4 }}>SUGGESTION_NODE</span>
                 </div>
-                <Button className="px-8">
-                  <Send size={18} />
-                </Button>
+                <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6 }}>{s.text}</p>
               </div>
-            </Card>
+            ))}
           </div>
-        </div>
+          <Button onClick={fetchSuggestions} variant="secondary" style={{ width: '100%', marginTop: '24px' }}>REFRESH_BUS</Button>
+        </Card>
+
+        {/* Chat Interface */}
+        <Card title="NEURAL_LINK_INTERFACE" id="CA-INT-B" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '32px', paddingRight: '8px', marginBottom: '32px' }}>
+            {messages.map((msg, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                <div style={{ maxWidth: '80%', padding: '32px', backgroundColor: msg.role === 'user' ? 'var(--primary)' : 'rgba(0,0,0,0.5)', border: msg.role === 'user' ? 'none' : '1px solid rgba(255,255,255,0.05)', color: msg.role === 'user' ? '#000' : '#fff', position: 'relative' }}>
+                  {msg.role === 'system' && (
+                    <div style={{ position: 'absolute', top: '-12px', left: '24px', padding: '4px 8px', backgroundColor: 'var(--primary)', color: '#000' }}>
+                      <Cpu size={14} />
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', opacity: 0.4 }}>
+                    <span className="mono-label" style={{ fontSize: '8px', color: msg.role === 'user' ? '#000' : 'var(--primary)' }}>{msg.role === 'user' ? 'AUTH_USER' : 'CORE_RESPONSE'}</span>
+                    <div style={{ flex: 1, height: '1px', backgroundColor: msg.role === 'user' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)' }}></div>
+                    <span className="mono-label" style={{ fontSize: '8px', color: msg.role === 'user' ? '#000' : 'var(--primary)' }}>T+{i*2}S</span>
+                  </div>
+                  <p style={{ fontSize: '0.875rem', lineHeight: 1.6, fontWeight: msg.role === 'user' ? 700 : 300 }}>{msg.content}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <div style={{ flex: 1, position: 'relative' }}>
+              <Terminal style={{ position: 'absolute', left: '24px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)', opacity: 0.5 }} size={18} />
+              <input 
+                type="text" 
+                style={{ width: '100%', backgroundColor: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', padding: '24px 24px 24px 64px', color: 'var(--primary)', fontFamily: 'var(--font-mono)', fontSize: '14px', outline: 'none' }}
+                placeholder="INITIATE NEURAL QUERY..."
+              />
+            </div>
+            <Button style={{ height: '70px', padding: '0 32px' }}><Send size={20} /></Button>
+          </div>
+        </Card>
       </div>
     </div>
   );
 };
-
-const Cpu = ({ size, className }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-    <rect x="9" y="9" width="6" height="6"></rect>
-    <line x1="9" y1="1" x2="9" y2="4"></line>
-    <line x1="15" y1="1" x2="15" y2="4"></line>
-    <line x1="9" y1="20" x2="9" y2="23"></line>
-    <line x1="15" y1="20" x2="15" y2="23"></line>
-    <line x1="20" y1="9" x2="23" y2="9"></line>
-    <line x1="20" y1="15" x2="23" y2="15"></line>
-    <line x1="1" y1="9" x2="4" y2="9"></line>
-    <line x1="1" y1="15" x2="4" y2="15"></line>
-  </svg>
-);

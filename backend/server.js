@@ -12,12 +12,13 @@ import multer from "multer";
 import AdmZip from "adm-zip";
 import { fileURLToPath } from "url";
 import os from "os";
+import crypto from "crypto";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(cors({ origin: ["http://localhost:5173", "http://127.0.0.1:5173"] }));
+app.use(cors()); // Allow all origins to prevent CORS-related "Failed to fetch"
 
 app.use(express.json());
 
@@ -332,7 +333,12 @@ app.post("/repo", async (req, res) => {
     }
 
     console.log(`Cloning ${repoUrl} to ${tempDir}`);
-    execSync(`git clone --depth 1 ${repoUrl} ${tempDir}`);
+    try {
+      execSync(`git clone --depth 1 ${repoUrl} ${tempDir}`, { stdio: 'inherit' });
+    } catch (gitErr) {
+      console.error("Git Clone Failed:", gitErr.message);
+      return res.status(400).json({ success: false, message: "FAILED_TO_ACCESS_REPOSITORY. VERIFY URL AND PERMISSIONS." });
+    }
 
     const processed = processFiles(tempDir);
     
@@ -353,6 +359,16 @@ app.post("/repo", async (req, res) => {
 
     // Clean up
     fs.rmSync(tempDir, { recursive: true, force: true });
+
+    // Save to Database (Aligned with actual schema: id, architecture, readme, suggestions, total_files)
+    try {
+      await db.execute(
+        "INSERT INTO analyses (id, architecture, readme, suggestions, total_files) VALUES (?, ?, ?, ?, ?)",
+        [crypto.randomUUID(), arch, updatedReadme || readmeStatus.content, JSON.stringify(lastSuggestions), processed.totalFiles]
+      );
+    } catch (dbErr) {
+      console.error("DB Save Failed:", dbErr.message);
+    }
 
     res.json({ 
       success: true, 
@@ -412,4 +428,6 @@ app.post("/upload", upload.single("zipFile"), async (req, res) => {
   }
 });
 
-app.listen(5001, () => console.log("Server running on port 5001"));
+app.listen(5001, "0.0.0.0", () => {
+  console.log("Server running on http://0.0.0.0:5001");
+});

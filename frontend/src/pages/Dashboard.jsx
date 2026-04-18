@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
-import { Search, Upload, FileCode, CheckCircle, AlertTriangle } from "lucide-react";
+import { Search, Upload, Shield } from "lucide-react";
 
-const BACKEND_URL = "http://localhost:5001";
+const BACKEND_URL = "http://127.0.0.1:5001";
 
 export const Dashboard = () => {
   const [repoUrl, setRepoUrl] = useState("");
@@ -72,86 +72,83 @@ export const Dashboard = () => {
   };
 
   return (
-    <div className="pt-32 pb-20 px-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-12">
-          <h2 className="text-4xl mb-2">SYSTEM DASHBOARD</h2>
-          <p className="text-white/40 font-mono text-xs tracking-widest">STATION_ALPHA // REPO_ANALYSIS_MODULE</p>
+    <div className="container">
+      <div className="mb-12" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '32px' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+            <Shield size={14} style={{ color: 'var(--primary)' }} />
+            <span className="mono-label" style={{ fontSize: '10px' }}>RECON_MODULE_01</span>
+          </div>
+          <h2 style={{ fontSize: '4rem', fontWeight: 900 }}>ANALYZE <span style={{ color: 'var(--primary)' }}>STATION</span></h2>
         </div>
+        <div style={{ textAlign: 'right' }}>
+          <span className="mono-label" style={{ fontSize: '10px', opacity: 0.4 }}>UPLINK_STATUS: SECURE</span>
+          <p className="mono-label" style={{ fontSize: '9px', opacity: 0.2, marginTop: '4px' }}>ENCRYPTION: AES-256-GCM</p>
+        </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          <Card title="GHT_ACCESS" className="lg:col-span-2">
-            <p className="text-white/40 text-xs mb-6 font-mono">ENTER PUBLIC GITHUB URL FOR ARCHITECTURE EXTRACTION</p>
-            <div className="flex gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px' }}>
+        <div style={{ display: 'flex', flexCol: 'column', gap: '32px', flexDirection: 'column' }}>
+          <Card title="GHT_ACCESS_POINT" id="CA-REC-A">
+            <p className="mono-label" style={{ fontSize: '10px', opacity: 0.4, marginBottom: '32px' }}>ENTER PUBLIC GITHUB URL FOR ARCHITECTURE SCAN</p>
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <div style={{ flex: 1, position: 'relative' }}>
+                <Search style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', opacity: 0.2 }} size={18} />
                 <input 
                   type="text" 
-                  className="w-full bg-white/5 border-b-2 border-white/10 px-12 py-4 outline-none focus:border-[#ff8f6f] transition-colors font-mono text-sm"
+                  style={{ width: '100%', backgroundColor: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px 16px 20px 52px', color: 'var(--primary)', fontFamily: 'var(--font-mono)', fontSize: '14px', outline: 'none' }}
                   placeholder="https://github.com/user/repo"
                   value={repoUrl}
                   onChange={(e) => setRepoUrl(e.target.value)}
                 />
               </div>
               <Button onClick={analyzeRepo} disabled={isAnalyzing}>
-                {isAnalyzing ? "WORKING..." : "ANALYZE"}
+                {isAnalyzing ? "WORKING..." : "INIT_SCAN"}
               </Button>
             </div>
           </Card>
 
-          <Card title="PKG_UPLOAD">
-            <p className="text-white/40 text-xs mb-6 font-mono">UPLOAD LOCAL ZIP PACKAGE</p>
-            <div className="flex flex-col gap-4">
-              <label className="w-full bg-white/5 border border-dashed border-white/10 p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-white/10 transition-colors">
-                <Upload size={24} className="text-[#ff8f6f]" />
-                <span className="text-[10px] font-mono opacity-60">
-                  {file ? file.name : "SELECT .ZIP FILE"}
-                </span>
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  accept=".zip"
-                  onChange={(e) => setFile(e.target.files[0])}
-                />
-              </label>
-              <Button onClick={uploadZip} variant="secondary" disabled={isAnalyzing}>
-                PROCESS PACKAGE
-              </Button>
+          <Card title="PROCESS_READOUT" id="CA-REC-B">
+            <div style={{ backgroundColor: '#000', padding: '32px', border: '1px solid rgba(255,255,255,0.05)', minHeight: '400px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '12px', lineHeight: 1.6 }}>
+              <pre style={{ color: 'rgba(255,255,255,0.6)', whiteSpace: 'pre-wrap' }}>
+                {output || "AWAITING_INPUT_COMMANDS..."}
+              </pre>
             </div>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-1 flex flex-col gap-4">
-            <Card title="SYS_LOGS">
-              <div className="space-y-4">
-                {[
-                  { label: "CONNECTION", status: "STABLE", icon: CheckCircle, color: "text-green-500" },
-                  { label: "CORE_ENGINE", status: "ACTIVE", icon: CheckCircle, color: "text-green-500" },
-                  { label: "MEMORY_USAGE", status: "NOMINAL", icon: CheckCircle, color: "text-green-500" },
-                  { label: "API_QUOTA", status: "92%", icon: AlertTriangle, color: "text-yellow-500" }
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between text-[10px] font-mono">
-                    <span className="opacity-40">{item.label}</span>
-                    <div className="flex items-center gap-2">
-                      <span className={item.color}>{item.status}</span>
-                      <item.icon size={10} className={item.color} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          <Card title="LOCAL_INGESTION" id="CA-REC-C">
+            <p className="mono-label" style={{ fontSize: '10px', opacity: 0.4, marginBottom: '24px' }}>UPLOAD ENCRYPTED ZIP PACKAGE</p>
+            <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', height: '160px', border: '1px dashed rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)', cursor: 'pointer' }}>
+              <Upload size={24} style={{ color: 'var(--primary)', opacity: 0.4 }} />
+              <span className="mono-label" style={{ fontSize: '9px', opacity: 0.4 }}>{file ? file.name : "SELECT .ZIP ARCHIVE"}</span>
+              <input type="file" style={{ display: 'none' }} onChange={(e) => setFile(e.target.files[0])} accept=".zip" />
+            </label>
+            <Button onClick={uploadZip} variant="secondary" style={{ width: '100%', marginTop: '16px' }} disabled={isAnalyzing}>
+              PROCESS_PACKAGE
+            </Button>
+          </Card>
 
-          <div className="lg:col-span-3">
-            <Card title="PROCESS_OUTPUT">
-              <div className="bg-black/50 p-6 font-mono text-sm leading-relaxed overflow-auto max-h-[600px] border border-white/5">
-                <pre className="text-white/80 whitespace-pre-wrap">
-                  {output || "AWAITING_INPUT..."}
-                </pre>
-              </div>
-            </Card>
-          </div>
+          <Card title="DIAGNOSTICS" id="CA-REC-D">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {[
+                { label: "CORE_LINK", status: "STABLE", val: 100 },
+                { label: "IO_STREAM", status: "NOMINAL", val: 100 },
+                { label: "BUFF_CAP", status: "98.2%", val: 98 }
+              ].map((item, i) => (
+                <div key={i}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span className="mono-label" style={{ fontSize: '9px', opacity: 0.4 }}>{item.label}</span>
+                    <span className="mono-label" style={{ fontSize: '9px', color: '#22c55e' }}>{item.status}</span>
+                  </div>
+                  <div style={{ height: '2px', backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                    <div style={{ height: '100%', width: `${item.val}%`, backgroundColor: 'var(--primary)' }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
         </div>
       </div>
     </div>

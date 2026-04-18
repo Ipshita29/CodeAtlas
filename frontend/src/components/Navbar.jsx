@@ -1,53 +1,39 @@
 import { NavLink } from "react-router-dom";
-import { Terminal, LayoutDashboard, MessageSquare, Shield } from "lucide-react";
+import { Shield, LayoutDashboard, MessageSquare, Activity } from "lucide-react";
 
 export const Navbar = () => {
-  const linkStyles = "flex items-center gap-2 px-4 py-6 text-xs font-mono tracking-widest transition-all duration-300 relative group";
-  const activeStyles = "text-[#ff8f6f]";
-
   return (
-    <nav className="fixed top-0 left-0 w-full h-16 glass z-50 flex items-center justify-between px-8 border-b border-white/5">
-      <div className="flex items-center gap-3">
-        <div className="bg-[#ff8f6f] p-1">
-          <Terminal size={20} color="black" />
+    <nav className="navbar">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: '4px', height: '16px', backgroundColor: 'var(--primary)' }}></div>
+          <span style={{ fontWeight: 900, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>CODEATLAS</span>
         </div>
-        <span className="font-black text-lg tracking-tighter">CODEATLAS</span>
-        <span className="text-[10px] font-mono opacity-40 ml-2 pt-1">V3.1.0_PRO</span>
+        <span className="mono-label" style={{ fontSize: '9px', opacity: 0.3, paddingLeft: '16px', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>V3.1.0_PRO</span>
       </div>
 
-      <div className="flex items-center">
-        <NavLink 
-          to="/" 
-          className={({ isActive }) => `${linkStyles} ${isActive ? activeStyles : "text-white/60"}`}
-        >
-          <Shield size={14} />
+      <div className="nav-links">
+        <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          <Shield size={12} />
           <span>INIT</span>
-          <div className="absolute left-0 bottom-0 w-full h-[2px] bg-[#ff8f6f] scale-x-0 group-hover:scale-x-100 transition-transform origin-left opacity-20"></div>
         </NavLink>
-        
-        <NavLink 
-          to="/dashboard" 
-          className={({ isActive }) => `${linkStyles} ${isActive ? activeStyles : "text-white/60"}`}
-        >
-          <LayoutDashboard size={14} />
+        <NavLink to="/dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          <LayoutDashboard size={12} />
           <span>ANALYZE</span>
-          <div className="absolute left-0 bottom-0 w-full h-[2px] bg-[#ff8f6f] scale-x-0 group-hover:scale-x-100 transition-transform origin-left opacity-20"></div>
         </NavLink>
-
-        <NavLink 
-          to="/chat" 
-          className={({ isActive }) => `${linkStyles} ${isActive ? activeStyles : "text-white/60"}`}
-        >
-          <MessageSquare size={14} />
+        <NavLink to="/chat" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          <MessageSquare size={12} />
           <span>INTELLIGENCE</span>
-          <div className="absolute left-0 bottom-0 w-full h-[2px] bg-[#ff8f6f] scale-x-0 group-hover:scale-x-100 transition-transform origin-left opacity-20"></div>
         </NavLink>
       </div>
 
-      <div className="hidden md:block">
-        <div className="flex items-center gap-4 text-[10px] font-mono opacity-40">
-          <span>LATENCY: 12MS</span>
-          <span>STATION: 08-ALPHA</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Activity size={12} style={{ color: 'var(--primary)', opacity: 0.5 }} />
+          <span className="mono-label" style={{ fontSize: '9px', opacity: 0.3 }}>LATENCY: 12MS</span>
+        </div>
+        <div style={{ paddingLeft: '40px', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+          <span className="mono-label" style={{ fontSize: '9px', opacity: 0.3 }}>STATION: 08-ALPHA</span>
         </div>
       </div>
     </nav>
