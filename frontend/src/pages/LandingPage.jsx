@@ -12,36 +12,36 @@ export const LandingPage = () => {
           <div className="mb-8" style={{ display: 'inline-block' }}>
             <div style={{ padding: '8px 16px', border: '1px solid rgba(255,143,111,0.2)', backgroundColor: 'rgba(255,143,111,0.05)', display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ width: '8px', height: '8px', backgroundColor: 'var(--primary)' }}></div>
-              <span className="mono-label" style={{ fontSize: '10px' }}>AI REPOSITORY INTELLIGENCE</span>
+              <span className="mono-label" style={{ fontSize: '10px' }}>AI CODE ANALYSIS</span>
             </div>
           </div>
 
           <h1 className="mb-12">
-            DECODE THE <br />
-            <span className="text-primary">STRUCTURE</span>
+            UNDERSTAND YOUR <br />
+            <span className="text-primary">CODE</span>
           </h1>
 
           <p className="mb-12" style={{ fontSize: '1.25rem', color: 'rgba(255,255,255,0.6)', fontWeight: 300, lineHeight: 1.6, maxWidth: '600px' }}>
-            CodeAtlas is a high-precision analyzer for elite engineers. Navigate complex codebases with machine-learning insights and architecture mapping.
+            CodeAtlas helps you understand complex codebases. Get clear insights and maps of your project's structure.
           </p>
           
           <div style={{ display: 'flex', gap: '24px' }}>
             <Link to="/dashboard">
               <Button>
-                INITIALIZE SYSTEM <ArrowRight size={18} />
+                GET STARTED <ArrowRight size={18} />
               </Button>
             </Link>
-            <Button variant="secondary">DOCUMENTATION</Button>
+            <Button variant="secondary">READ GUIDE</Button>
           </div>
         </div>
 
         {/* Right Column */}
         <div className="hud-modules">
           {[
-            { icon: Cpu, title: "ANALYZER", status: "ONLINE", id: "01-X" },
-            { icon: Network, title: "MAPPING", status: "READY", id: "02-Y" },
-            { icon: Database, title: "CONTEXT", status: "STABLE", id: "03-Z" },
-            { icon: Zap, title: "INSIGHTS", status: "ACTIVE", id: "04-W" }
+            { icon: Cpu, title: "SCANNER", status: "ONLINE", id: "01-X" },
+            { icon: Network, title: "DIAGRAMS", status: "READY", id: "02-Y" },
+            { icon: Database, title: "KNOWLEDGE", status: "STABLE", id: "03-Z" },
+            { icon: Zap, title: "IDEAS", status: "ACTIVE", id: "04-W" }
           ].map((module, i) => (
             <div key={i} className="hud-module">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -63,9 +63,9 @@ export const LandingPage = () => {
       {/* Footer Features */}
       <div className="feature-grid">
         {[
-          { id: "01", title: "SCHEMA ANALYSIS", desc: "Automated extraction of database schemas and entity relationships." },
-          { id: "02", title: "LOGIC FLOW", desc: "Mapping of cross-component interactions and data propagation paths." },
-          { id: "03", title: "OPTIMIZATION", desc: "AI-driven suggestions for structural refactoring and performance." }
+          { id: "01", title: "DATABASE MAPS", desc: "Automatically see how your database tables connect." },
+          { id: "02", title: "CODE PATHS", desc: "See how data moves through your app." },
+          { id: "03", title: "IMPROVEMENTS", desc: "Smart tips to make your code better and faster." }
         ].map((item, i) => (
           <div key={i}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '16px', marginBottom: '24px' }}>

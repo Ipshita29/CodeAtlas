@@ -14,7 +14,7 @@ export const Dashboard = () => {
   const analyzeRepo = async () => {
     if (!repoUrl) return;
     setIsAnalyzing(true);
-    setOutput("SYSTEM_STATUS: INITIALIZING_ANALYSIS...\nACCESSING_REPOSITORY...");
+    setOutput("Starting analysis...\nConnecting to code...");
 
     try {
       const res = await fetch(`${BACKEND_URL}/repo`, {
@@ -26,10 +26,10 @@ export const Dashboard = () => {
       if (data.success) {
         formatOutput(data);
       } else {
-        setOutput(`ERROR_CODE: 0xFD\nMESSAGE: ${data.message}`);
+        setOutput(`Scan Error\nMessage: ${data.message}`);
       }
     } catch (err) {
-      setOutput(`SYSTEM_FAULT: ${err.message}`);
+      setOutput(`System Error: ${err.message}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -38,7 +38,7 @@ export const Dashboard = () => {
   const uploadZip = async () => {
     if (!file) return;
     setIsAnalyzing(true);
-    setOutput("SYSTEM_STATUS: UPLOADING_PACKAGE...\nEXTRACTING_DATA...");
+    setOutput("Uploading code...\nReading files...");
 
     const formData = new FormData();
     formData.append("zipFile", file);
@@ -52,21 +52,21 @@ export const Dashboard = () => {
       if (data.success) {
         formatOutput(data);
       } else {
-        setOutput(`ERROR_CODE: 0xFE\nMESSAGE: ${data.message}`);
+        setOutput(`Upload Error\nMessage: ${data.message}`);
       }
     } catch (err) {
-      setOutput(`SYSTEM_FAULT: ${err.message}`);
+      setOutput(`System Error: ${err.message}`);
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const formatOutput = (data) => {
-    let text = `ANALYSIS_COMPLETE\n-----------------\n`;
-    text += `ARCHITECTURE_MAP:\n${data.architecture}\n\n`;
-    text += `README_STABILITY: ${data.readmeStatus}\n\n`;
+    let text = `Analysis Finished\n-----------------\n`;
+    text += `Project Structure:\n${data.architecture}\n\n`;
+    text += `Documentation Health: ${data.readmeStatus}\n\n`;
     if (data.updatedReadme) {
-      text += `PROPOSED_DOCUMENTATION:\n${data.updatedReadme}`;
+      text += `Suggested Readme:\n${data.updatedReadme}`;
     }
     setOutput(text);
   };
@@ -77,20 +77,20 @@ export const Dashboard = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
             <Shield size={14} style={{ color: 'var(--primary)' }} />
-            <span className="mono-label" style={{ fontSize: '10px' }}>RECON_MODULE_01</span>
+            <span className="mono-label" style={{ fontSize: '10px' }}>ANALYSIS TOOL</span>
           </div>
-          <h2 style={{ fontSize: '4rem', fontWeight: 900 }}>ANALYZE <span style={{ color: 'var(--primary)' }}>STATION</span></h2>
+          <h2 style={{ fontSize: '4rem', fontWeight: 900 }}>ANALYZE <span style={{ color: 'var(--primary)' }}>PROJECT</span></h2>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <span className="mono-label" style={{ fontSize: '10px', opacity: 0.4 }}>UPLINK_STATUS: SECURE</span>
-          <p className="mono-label" style={{ fontSize: '9px', opacity: 0.2, marginTop: '4px' }}>ENCRYPTION: AES-256-GCM</p>
+          <span className="mono-label" style={{ fontSize: '10px', opacity: 0.4 }}>STATUS: CONNECTED</span>
+          <p className="mono-label" style={{ fontSize: '9px', opacity: 0.2, marginTop: '4px' }}>SECURE CONNECTION</p>
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px' }}>
         <div style={{ display: 'flex', flexCol: 'column', gap: '32px', flexDirection: 'column' }}>
-          <Card title="GHT_ACCESS_POINT" id="CA-REC-A">
-            <p className="mono-label" style={{ fontSize: '10px', opacity: 0.4, marginBottom: '32px' }}>ENTER PUBLIC GITHUB URL FOR ARCHITECTURE SCAN</p>
+          <Card title="IMPORT FROM GITHUB" id="CA-REC-A">
+            <p className="mono-label" style={{ fontSize: '10px', opacity: 0.4, marginBottom: '32px' }}>ENTER A GITHUB LINK TO SCAN YOUR PROJECT</p>
             <div style={{ display: 'flex', gap: '16px' }}>
               <div style={{ flex: 1, position: 'relative' }}>
                 <Search style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', opacity: 0.2 }} size={18} />
@@ -103,39 +103,39 @@ export const Dashboard = () => {
                 />
               </div>
               <Button onClick={analyzeRepo} disabled={isAnalyzing}>
-                {isAnalyzing ? "WORKING..." : "INIT_SCAN"}
+                {isAnalyzing ? "ANALYZING..." : "START SCAN"}
               </Button>
             </div>
           </Card>
 
-          <Card title="PROCESS_READOUT" id="CA-REC-B">
+          <Card title="ANALYSIS RESULTS" id="CA-REC-B">
             <div style={{ backgroundColor: '#000', padding: '32px', border: '1px solid rgba(255,255,255,0.05)', minHeight: '400px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '12px', lineHeight: 1.6 }}>
               <pre style={{ color: 'rgba(255,255,255,0.6)', whiteSpace: 'pre-wrap' }}>
-                {output || "AWAITING_INPUT_COMMANDS..."}
+                {output || "Ready to scan..."}
               </pre>
             </div>
           </Card>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          <Card title="LOCAL_INGESTION" id="CA-REC-C">
-            <p className="mono-label" style={{ fontSize: '10px', opacity: 0.4, marginBottom: '24px' }}>UPLOAD ENCRYPTED ZIP PACKAGE</p>
+          <Card title="UPLOAD FILES" id="CA-REC-C">
+            <p className="mono-label" style={{ fontSize: '10px', opacity: 0.4, marginBottom: '24px' }}>UPLOAD A ZIP FILE OF YOUR CODE</p>
             <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', height: '160px', border: '1px dashed rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)', cursor: 'pointer' }}>
               <Upload size={24} style={{ color: 'var(--primary)', opacity: 0.4 }} />
-              <span className="mono-label" style={{ fontSize: '9px', opacity: 0.4 }}>{file ? file.name : "SELECT .ZIP ARCHIVE"}</span>
+              <span className="mono-label" style={{ fontSize: '9px', opacity: 0.4 }}>{file ? file.name : "SELECT A .ZIP FILE"}</span>
               <input type="file" style={{ display: 'none' }} onChange={(e) => setFile(e.target.files[0])} accept=".zip" />
             </label>
             <Button onClick={uploadZip} variant="secondary" style={{ width: '100%', marginTop: '16px' }} disabled={isAnalyzing}>
-              PROCESS_PACKAGE
+              UPLOAD AND SCAN
             </Button>
           </Card>
 
-          <Card title="DIAGNOSTICS" id="CA-REC-D">
+          <Card title="SYSTEM HEALTH" id="CA-REC-D">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {[
-                { label: "CORE_LINK", status: "STABLE", val: 100 },
-                { label: "IO_STREAM", status: "NOMINAL", val: 100 },
-                { label: "BUFF_CAP", status: "98.2%", val: 98 }
+                { label: "SERVER", status: "STABLE", val: 100 },
+                { label: "NETWORK", status: "NOMINAL", val: 100 },
+                { label: "MEMORY", status: "98.2%", val: 98 }
               ].map((item, i) => (
                 <div key={i}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
