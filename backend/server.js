@@ -69,26 +69,26 @@ const processFiles = (dir) => {
         traverse(fullPath, relPath);
       } else {
         result.totalFiles++;
-        
+
         let content = "";
         const ext = path.extname(file).toLowerCase();
         const codeExtensions = [".js", ".jsx", ".ts", ".tsx", ".py", ".html", ".css", ".cpp", ".java", ".c", ".h", ".md"];
-        
+
         const isReadme = file.toLowerCase() === "readme.md";
         const isImportant = ["package.json", "requirements.txt", "manage.py", "pyproject.toml"].includes(file);
         const isCode = codeExtensions.includes(ext);
-        
+
         // Simple line count helper
         let lines = 0;
         let hasComments = false;
-        
+
         // ONLY read if it's code, readme, or important config
         if (isCode || isReadme || isImportant) {
           try {
             const raw = fs.readFileSync(fullPath, "utf-8");
             lines = raw.split("\n").length;
             hasComments = raw.includes("//") || raw.includes("#");
-            
+
             if (isReadme || isImportant) {
               content = raw;
             }
@@ -121,7 +121,7 @@ async function getArchitecture(files) {
     const hasManagePy = rootFiles.includes("manage.py");
     const hasRequirements = rootFiles.includes("requirements.txt") || rootFiles.includes("pyproject.toml");
     const hasCMake = rootFiles.includes("CMakeLists.txt") || files.some(f => f.name === "CMakeLists.txt");
-    
+
     // Count extensions
     let extCount = {};
     files.forEach(f => {
@@ -134,22 +134,22 @@ async function getArchitecture(files) {
     if (hasRequirements || (extCount[".py"] || 0) > (extCount[".js"] || 0)) return "Python based project.";
     if (hasCMake || (extCount[".cpp"] || 0) > 0) return "C++ based project.";
     if ((extCount[".html"] || 0) > 0 && (extCount[".js"] || 0) > 0) return "Frontend (Web) project.";
-    
+
     return "General project structure.";
   };
 
   let importantFiles = files.filter(f => {
-      return (
-        f.name === "package.json" ||
-        f.name === "requirements.txt" ||
-        f.name === "README.md" ||
-        f.path.includes("src/") ||
-        f.path.includes("app/") ||
-        f.path.includes("main") ||
-        f.path.endsWith(".js") ||
-        f.path.endsWith(".py")
-      );
-    });
+    return (
+      f.name === "package.json" ||
+      f.name === "requirements.txt" ||
+      f.name === "README.md" ||
+      f.path.includes("src/") ||
+      f.path.includes("app/") ||
+      f.path.includes("main") ||
+      f.path.endsWith(".js") ||
+      f.path.endsWith(".py")
+    );
+  });
 
   let fileContext = importantFiles
     .slice(0, 20) // reduce size
@@ -171,18 +171,18 @@ Flow: [Flow]"`;
   let lastError = "";
 
   for (let model of models) {
-     try {
-        const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-          contents: [{ parts: [{ text: prompt }] }]
-        });
-        if (response.data?.candidates?.[0]?.content) {
-            return response.data.candidates[0].content.parts[0].text;
-        }
-     } catch (err) {
-        lastError = err.response?.data?.error?.message || err.message;
-        console.log(`Model ${model} failed:`, lastError);
-        if (err.response?.status !== 429) break; // If not rate limited, stop trying others
-     }
+    try {
+      const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        contents: [{ parts: [{ text: prompt }] }]
+      });
+      if (response.data?.candidates?.[0]?.content) {
+        return response.data.candidates[0].content.parts[0].text;
+      }
+    } catch (err) {
+      lastError = err.response?.data?.error?.message || err.message;
+      console.log(`Model ${model} failed:`, lastError);
+      if (err.response?.status !== 429) break; // If not rate limited, stop trying others
+    }
   }
 
   return `This is a ${guessArchitecture(files)}\n\n(AI was busy: ${lastError})`;
@@ -198,10 +198,10 @@ function checkReadme(files) {
 
   let content = readmeFile.content;
   let lines = content.split("\n").length;
-  
-  let hasKeywords = content.toLowerCase().includes("install") || 
-                    content.toLowerCase().includes("usage") || 
-                    content.toLowerCase().includes("setup");
+
+  let hasKeywords = content.toLowerCase().includes("install") ||
+    content.toLowerCase().includes("usage") ||
+    content.toLowerCase().includes("setup");
 
   if (lines < 50 || !hasKeywords) {
     return { status: "needs improvement", content: content };
@@ -213,7 +213,7 @@ function checkReadme(files) {
 // 3. GENERATE README (AI CALL)
 async function generateReadmeAI(files, tech) {
   let mainFiles = files.slice(0, 15).map(f => f.name).join(", ");
-  
+
   let prompt = `Make a very simple README.md for this coding project.
 Tech stack: ${tech}
 Main files: ${mainFiles}
@@ -223,8 +223,8 @@ Keep it clean, easy instructions for students. Use simple markdown.`;
   console.log("Calling Gemini API for README...");
 
   if (!process.env.GEMINI_API_KEY) {
-      console.log("No API Key found in .env");
-      return `# Project README\n\nThis is a ${tech} project.`;
+    console.log("No API Key found in .env");
+    return `# Project README\n\nThis is a ${tech} project.`;
   }
 
   const models = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-flash-latest"];
@@ -237,7 +237,7 @@ Keep it clean, easy instructions for students. Use simple markdown.`;
       });
 
       if (response.data && response.data.candidates && response.data.candidates[0].content) {
-          return response.data.candidates[0].content.parts[0].text;
+        return response.data.candidates[0].content.parts[0].text;
       }
     } catch (err) {
       lastError = err.response?.data?.error?.message || err.message;
@@ -313,7 +313,7 @@ async function refineSuggestionsAI(hints) {
   if (hints.length === 0) {
     return [{ text: "Project looks well structured!", files: [] }];
   }
-  
+
   // Actually, let's keep it simple and just use the hints directly to avoid AI messing up the structure
   // This is more "beginner style" and reliable for the requested format.
   return hints;
@@ -341,13 +341,13 @@ app.post("/repo", async (req, res) => {
     }
 
     const processed = processFiles(tempDir);
-    
+
     // get architecture (now async)
     const arch = await getArchitecture(processed.files);
-    
+
     // check readme
     const readmeStatus = checkReadme(processed.files);
-    
+
     let updatedReadme = null;
     if (readmeStatus.status === "missing" || readmeStatus.status === "needs improvement") {
       updatedReadme = await generateReadmeAI(processed.files, arch);
@@ -370,8 +370,8 @@ app.post("/repo", async (req, res) => {
       console.error("DB Save Failed:", dbErr.message);
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       architecture: arch,
       readmeStatus: readmeStatus.status,
       updatedReadme: updatedReadme,
@@ -400,7 +400,7 @@ app.post("/upload", upload.single("zipFile"), async (req, res) => {
     // architecture & readme logic
     const arch = await getArchitecture(processed.files);
     const readmeStatus = checkReadme(processed.files);
-    
+
     let updatedReadme = null;
     if (readmeStatus.status === "missing" || readmeStatus.status === "needs improvement") {
       updatedReadme = await generateReadmeAI(processed.files, arch);
@@ -414,20 +414,21 @@ app.post("/upload", upload.single("zipFile"), async (req, res) => {
     fs.rmSync(tempDir, { recursive: true, force: true });
     fs.unlinkSync(req.file.path);
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       architecture: arch,
       readmeStatus: readmeStatus.status,
       updatedReadme: updatedReadme,
       totalFiles: processed.totalFiles,
       suggestions: lastSuggestions
-     });
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-app.listen(5001, "0.0.0.0", () => {
-  console.log("Server running on http://0.0.0.0:5001");
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
 });

@@ -94,8 +94,8 @@ export const Dashboard = () => {
             <div style={{ display: 'flex', gap: '16px' }}>
               <div style={{ flex: 1, position: 'relative' }}>
                 <Search style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', opacity: 0.2 }} size={18} />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   style={{ width: '100%', backgroundColor: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px 16px 20px 52px', color: 'var(--primary)', fontFamily: 'var(--font-mono)', fontSize: '14px', outline: 'none' }}
                   placeholder="https://github.com/user/repo"
                   value={repoUrl}

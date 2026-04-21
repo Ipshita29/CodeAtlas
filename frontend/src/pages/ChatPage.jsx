@@ -52,7 +52,7 @@ export const ChatPage = () => {
             {suggestions.map((s, i) => (
               <div key={i} style={{ padding: '24px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                  <div style={{ width: '24px', height: '24px', border: '1px solid var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontSize: '10px', fontFamily: 'var(--font-mono)' }}>{i+1}</div>
+                  <div style={{ width: '24px', height: '24px', border: '1px solid var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontSize: '10px', fontFamily: 'var(--font-mono)' }}>{i + 1}</div>
                   <span className="mono-label" style={{ fontSize: '9px', opacity: 0.4 }}>SUGGESTION</span>
                 </div>
                 <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6 }}>{s.text}</p>
@@ -76,7 +76,7 @@ export const ChatPage = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', opacity: 0.4 }}>
                     <span className="mono-label" style={{ fontSize: '8px', color: msg.role === 'user' ? '#000' : 'var(--primary)' }}>{msg.role === 'user' ? 'YOU' : 'AI'}</span>
                     <div style={{ flex: 1, height: '1px', backgroundColor: msg.role === 'user' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)' }}></div>
-                    <span className="mono-label" style={{ fontSize: '8px', color: msg.role === 'user' ? '#000' : 'var(--primary)' }}>T+{i*2}S</span>
+                    <span className="mono-label" style={{ fontSize: '8px', color: msg.role === 'user' ? '#000' : 'var(--primary)' }}>T+{i * 2}S</span>
                   </div>
                   <p style={{ fontSize: '0.875rem', lineHeight: 1.6, fontWeight: msg.role === 'user' ? 700 : 300 }}>{msg.content}</p>
                 </div>
@@ -87,8 +87,8 @@ export const ChatPage = () => {
           <div style={{ display: 'flex', gap: '16px' }}>
             <div style={{ flex: 1, position: 'relative' }}>
               <Terminal style={{ position: 'absolute', left: '24px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)', opacity: 0.5 }} size={18} />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 style={{ width: '100%', backgroundColor: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', padding: '24px 24px 24px 64px', color: 'var(--primary)', fontFamily: 'var(--font-mono)', fontSize: '14px', outline: 'none' }}
                 placeholder="Ask a question about your code..."
               />
