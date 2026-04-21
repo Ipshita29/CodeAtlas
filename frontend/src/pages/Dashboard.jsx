@@ -3,7 +3,7 @@ import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { Search, Upload, Shield } from "lucide-react";
 
-const BACKEND_URL = "http://127.0.0.1:5001";
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 export const Dashboard = () => {
   const [repoUrl, setRepoUrl] = useState("");
